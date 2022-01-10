@@ -16,22 +16,35 @@ static string ReverseString(byte[] data)
 var config = new RainwayConfig
 {
     // your publishable API key should go here
-    ApiKey = string.Empty,
+    ApiKey = "XXXX",//string.Empty,
     ExternalId = string.Empty,
-    LogSink = (level, message) => Console.WriteLine($"[RW][{level.ToString().ToUpper()}] {message}"),
+    // LogSink = (level, message) => Console.WriteLine($"[RW][{level.ToString().ToUpper()}] {message}"),
     // audo accepts all connection request
     OnConnectionRequest = (request) => request.Accept(),
     // auto accepts all stream request and gives full input privileges to the remote peer 
-    OnStreamRequest = (requests) => requests.Accept(new RainwayPeerPermissions(true, true, true)),
+    OnStreamRequest = (requests) => {
+
+        RainwayStreamConfig rainwayStreamConfig = new RainwayStreamConfig();
+        rainwayStreamConfig.InputLevel = RainwayInputLevel.Mouse | RainwayInputLevel.Keyboard;
+        requests.Accept( rainwayStreamConfig);
+        },
     // reverses the data sent by a peer and echos it back
     OnPeerMessage = (peer, data) => peer.Send(ReverseString(data))
 };
 
 // initalize the runtime
 using var runtime = await RainwayRuntime.Initialize(config);
-runtime.SetLogLevel(RainwayLogLevel.Information);
+/*
+RainwayRuntime.SetLogSink(( level,  m,  y) =>
+{
+
+    Console.WriteLine($"{level}: {m} - {y}");
+});
+*/
+
+RainwayRuntime.SetLogLevel(RainwayLogLevel.Trace, "foo");
 Console.WriteLine($"Rainway SDK Version: {runtime.Version}");
-Console.WriteLine($"Hostname: {runtime.Hostname}");
+Console.WriteLine($"Hostname: {runtime.PeerId}");
 Console.WriteLine("Press Ctrl+C To Terminate");
 
 var closeEvent = new AutoResetEvent(false);
